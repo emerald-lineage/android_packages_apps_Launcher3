@@ -396,16 +396,51 @@ constructor(
             applyScale()
         }
 
+    /** Scale of the stacked recents style, see [RecentsStyle]. */
+    var recentsScale = 1f
+        set(value) {
+            if (field == value) return
+            field = value
+            applyScale()
+        }
+
+    private var recentsTranslationX = 0f
+    private var recentsTranslationY = 0f
+    private var recentsDimAmount = 0f
+    private var colorTintAmount = 0f
+
+    val recentsPrimaryTranslation: Float
+        get() = pagedOrientationHandler.getPrimaryValue(recentsTranslationX, recentsTranslationY)
+
+    fun setRecentsTranslation(translation: Float) {
+        val x = pagedOrientationHandler.getPrimaryValue(translation, 0f)
+        val y = pagedOrientationHandler.getPrimaryValue(0f, translation)
+        if (recentsTranslationX == x && recentsTranslationY == y) return
+        recentsTranslationX = x
+        recentsTranslationY = y
+        applyTranslationX()
+        applyTranslationY()
+    }
+
+    fun setRecentsDim(amount: Float) {
+        if (recentsDimAmount == amount) return
+        recentsDimAmount = amount
+        val tintAmount = maxOf(colorTintAmount, recentsDimAmount)
+        taskContainers.forEach { it.updateTintAmount(tintAmount) }
+    }
+
     private var dismissTranslationX = 0f
         set(value) {
             field = value
             applyTranslationX()
+            recentsView?.updateTaskRecentsStyle(this)
         }
 
     private var dismissTranslationY = 0f
         set(value) {
             field = value
             applyTranslationY()
+            recentsView?.updateTaskRecentsStyle(this)
         }
 
     private var taskOffsetTranslationX = 0f
@@ -1729,11 +1764,13 @@ constructor(
 
     /** Set a color tint on the snapshot and supporting views. */
     open fun setColorTint(amount: Float, tintColor: Int) {
+        colorTintAmount = amount
         // RecentsView's COLOR_TINT animates between 0 and 0.5f, we want to hide the app chip menu.
         val colorTintAlpha = Utilities.mapToRange(amount, 0f, 0.5f, 1f, 0f, Interpolators.LINEAR)
         getTaskIcons().forEach { (icon, _) -> icon.colorTintAlpha = colorTintAlpha }
         taskContainers.forEach {
-            it.updateTintAmount(amount)
+            // The stacked recents dim only darkens the snapshot, never below the requested tint.
+            it.updateTintAmount(maxOf(amount, recentsDimAmount))
             it.digitalWellBeingToast?.setColorTint(tintColor, amount)
         }
     }
@@ -1777,6 +1814,7 @@ constructor(
             persistentScale *
                 dismissScale *
                 animateToIconScale *
+                recentsScale *
                 Utilities.mapRange(modalness, 1f, modalScale)
         scaleX = scale
         scaleY = scale
@@ -1786,6 +1824,7 @@ constructor(
     private fun applyTranslationX() {
         translationX =
             dismissTranslationX +
+                recentsTranslationX +
                 taskOffsetTranslationX +
                 taskResistanceTranslationX +
                 splitSelectTranslationX +
@@ -1797,6 +1836,7 @@ constructor(
     private fun applyTranslationY() {
         translationY =
             dismissTranslationY +
+                recentsTranslationY +
                 taskOffsetTranslationY +
                 taskResistanceTranslationY +
                 splitSelectTranslationY +
@@ -1877,6 +1917,9 @@ constructor(
             splitSelectTranslationY = 0f
         }
         dismissScale = 1f
+        recentsScale = 1f
+        setRecentsTranslation(0f)
+        setRecentsDim(0f)
         translationZ = 0f
         setIconVisibleForGesture(true)
         settledProgressDismiss = 1f
