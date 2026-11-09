@@ -221,11 +221,20 @@ constructor(
                 val lowerIndex = max(0, centerPageIndex - 2)
                 val upperIndex = centerPageIndex + 2
 
-                recentsView.children
-                    .drop(lowerIndex)
-                    .take(upperIndex - lowerIndex + 1)
-                    .filterIsInstance<TaskView>()
-                    .toList()
+                val nearbyTaskViews =
+                    recentsView.children
+                        .drop(lowerIndex)
+                        .take(upperIndex - lowerIndex + 1)
+                        .filterIsInstance<TaskView>()
+                        .toList()
+                if (recentsView.isStackRecentsStyleActive) {
+                    // Stacked cards further away can still peek out on screen.
+                    (nearbyTaskViews +
+                            taskViews.filter { recentsView.isStackTaskWithinBounds(it) })
+                        .distinct()
+                } else {
+                    nearbyTaskViews
+                }
             }
 
         return visibleTaskViews

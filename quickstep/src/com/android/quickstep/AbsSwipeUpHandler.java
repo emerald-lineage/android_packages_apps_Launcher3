@@ -3121,6 +3121,10 @@ public abstract class AbsSwipeUpHandler<
                 if (setRecentsScroll) {
                     taskViewSimulator.setScroll(scrollOffset);
                 }
+                if (mRecentsView != null) {
+                    // Keep the window in step with its stacked TaskView during the gesture.
+                    mRecentsView.updateRecentsStyle(remoteHandle);
+                }
                 TransformParams transformParams = remoteHandle.getTransformParams();
                 if (shouldFadeOutTargetsForKeyboardQuickSwitch(
                         transformParams, taskViewSimulator, progress)) {
