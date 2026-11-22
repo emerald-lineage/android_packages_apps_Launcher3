@@ -5799,77 +5799,15 @@ public abstract class RecentsView<
     }
 
     /**
-     * Returns the distance a task has to travel to fill the gap left by a dismissed task, with the
-     * extra travel required by the stack styles taken into account.
+     * The reflow of a stacked card needs no correction: {@link #updateTaskRecentsStyle} derives the
+     * stack offset from the page scroll <em>plus</em> the pending dismiss travel, so the offset
+     * already follows the card while it reflows and lands exactly where the layout expects it.
      *
-     * <p>In a stack layout the visual offset of a card depends on its distance to the centre, so
-     * moving a card by the plain page gap lands it at a slightly wrong place. The difference
-     * between the current and the resulting stack offset is added to the target, so the reflow
-     * spring ends exactly where the stack layout expects the card to be.
-     *
-     * @param taskView     the task that is being reflowed
+     * @param taskView     the task that is being reflowed (unused, kept for call-site symmetry)
      * @param reflowTarget the plain page gap the task has to travel
      */
     public float getStackDismissReflowTarget(TaskView taskView, float reflowTarget) {
-        if (!isStackRecentsStyleActive()) {
-            return reflowTarget;
-        }
-        float overlapFactor = getStackStyleOverlapFactor();
-        if (overlapFactor <= 0f) {
-            return reflowTarget;
-        }
-        int childIndex = indexOfChild(taskView);
-        if (!isPageScrollsInitialized() || childIndex < 0 || childIndex >= mPageScrolls.length) {
-            return reflowTarget;
-        }
-        RecentsPagedOrientationHandler orientation = getPagedOrientationHandler();
-        int childSize = orientation.getPrimarySize(taskView);
-        if (childSize <= 0) {
-            return reflowTarget;
-        }
-        float currentDist = mPageScrolls[childIndex] - orientation.getPrimaryScroll(this);
-        float currentStackOffset = getStackStyleTranslation(currentDist, childSize, overlapFactor);
-        float targetStackOffset = getStackStyleTranslation(
-                currentDist + reflowTarget, childSize, overlapFactor);
-        return reflowTarget + targetStackOffset - currentStackOffset;
-    }
-
-    /**
-     * Same math as {@link RecentsStyle}, restricted to the horizontal shift the stack styles apply
-     * to a card at the given distance. Used to predict where a card lands after a reflow.
-     */
-    private float getStackStyleTranslation(float dist, float childSize, float overlapFactor) {
-        float absDist = Math.abs(dist);
-        if (mRecentsStyle.equals("staple")) {
-            float stapleDistance = childSize * 0.60f;
-            if (absDist <= stapleDistance) {
-                return 0f;
-            }
-            float excess = absDist - stapleDistance;
-            float squish = Math.min(excess, (float) (Math.log10(1f + excess) * 12f));
-            float pullBack = absDist - (stapleDistance + squish);
-            float translation = (dist > 0f) ? -pullBack : pullBack;
-            return translation * overlapFactor;
-        }
-        if (mRecentsStyle.equals("ios")) {
-            float stapleDistance = childSize * 0.1f;
-            if (dist >= 0f || absDist <= stapleDistance) {
-                return 0f;
-            }
-            float excess = absDist - stapleDistance;
-            float squish = Math.min(excess, (float) (Math.log10(1f + excess) * 45f));
-            float pullBack = absDist - (stapleDistance + squish);
-            return pullBack * overlapFactor;
-        }
-        if (mRecentsStyle.equals("oxygen")) {
-            if (dist >= 0f || absDist <= 0f) {
-                return 0f;
-            }
-            float squish = Math.min(absDist, (float) (Math.sqrt(absDist) * 7.5f));
-            float pullBack = absDist - squish;
-            return pullBack * overlapFactor;
-        }
-        return 0f;
+        return reflowTarget;
     }
 
     private void doScrollScale() {
@@ -5898,6 +5836,9 @@ public abstract class RecentsView<
         float progress = getStackStyleOverlapFactor();
         boolean hasScroll = isPageScrollsInitialized()
                 && index >= 0 && index < mPageScrolls.length;
+        // Effective distance: page scroll plus the pending dismiss/reflow travel. With this input
+        // the stack offset follows the card while it reflows, so the settled position after the
+        // task is removed matches what was drawn on the previous frame - no jump on landing.
         float distance = hasScroll
                 ? mPageScrolls[index] - orientation.getPrimaryScroll(this)
                         + taskView.getPrimaryDismissTranslationProperty().get(taskView)

@@ -48,4 +48,10 @@
     <string name="trust_apps_help">Помощь</string>
     <string name="trust_apps_info_hidden">Скрытые приложения и их виджеты не отображаются в меню приложений</string>
     <string name="trust_apps_info_protected">Для открытия защищенных приложений из лаунчера требуется аутентификация</string>
+    <string name="recents_style_title">Стиль экрана «Недавние»</string>
+    <string name="recents_style_default">Обычный</string>
+    <string name="recents_style_stock">Эффект масштаба</string>
+    <string name="recents_style_staple">Стиль Kami</string>
+    <string name="recents_style_ios">Стиль iOS</string>
+    <string name="recents_style_oxygen">Стиль OxygenOS</string>
 </resources>
