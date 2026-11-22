@@ -103,15 +103,6 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     public final AnimatedFloat taskGridTranslationX = new AnimatedFloat();
     public final AnimatedFloat taskGridTranslationY = new AnimatedFloat();
 
-    // Stacked recents style (RecentsStyle) of the TaskView this simulator mirrors
-    private float mRecentsStyleScale = 1f;
-    private float mRecentsStyleTranslation;
-
-    public void setRecentsStyleTransform(float scale, float translation) {
-        mRecentsStyleScale = scale;
-        mRecentsStyleTranslation = translation;
-    }
-
     // Carousel properties
     public final AnimatedFloat carouselScale = new AnimatedFloat();
 
@@ -471,7 +462,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
 
         float fullScreenProgress = Utilities.boundToRange(this.fullScreenProgress.value, 0, 1);
         mCurrentFullscreenParams.setProgress(fullScreenProgress, recentsViewScale.value,
-                carouselScale.value * mRecentsStyleScale);
+                carouselScale.value);
 
         // Apply thumbnail matrix
         float taskWidth = mTaskRect.width();
@@ -493,10 +484,8 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             }
         }
 
-        mMatrix.postScale(mRecentsStyleScale, mRecentsStyleScale,
-                mFullTaskSize.exactCenterX(), mFullTaskSize.exactCenterY());
         mOrientationState.getOrientationHandler().setPrimary(mMatrix, MATRIX_POST_TRANSLATE,
-                taskPrimaryTranslation.value + mRecentsStyleTranslation);
+                taskPrimaryTranslation.value);
         mOrientationState.getOrientationHandler().setSecondary(mMatrix, MATRIX_POST_TRANSLATE,
                 taskSecondaryTranslation.value);
         mMatrix.postTranslate(taskGridTranslationX.value, taskGridTranslationY.value);
