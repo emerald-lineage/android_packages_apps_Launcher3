@@ -323,6 +323,9 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
 
         @JvmField val ENABLE_COMPOSITION_TRACING = backedUpItem(COMPOSITION_TRACING_PREF_KEY, false)
 
+        // Overview layout: "default", "stock" (scale effect), "staple" (Kami), "ios", "oxygen".
+        @JvmField val RECENTS_STYLE = backedUpItem("pref_recents_style", "default")
+
         @JvmField
         val FIXED_LANDSCAPE_MODE = backedUpItem(SettingsActivity.FIXED_LANDSCAPE_MODE, false)
 
