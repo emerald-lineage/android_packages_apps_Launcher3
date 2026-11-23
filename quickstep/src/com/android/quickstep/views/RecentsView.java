@@ -1046,6 +1046,16 @@ public abstract class RecentsView<
         // OverviewActionsView related.
         mIs3PLauncher = !mOverviewComponentObserver.isHomeAndOverviewSame();
         mActionsView = actionsView;
+        // Clear all lives next to the screenshot button in Launcher (see
+        // overview_actions_container.xml). The carousel button then only serves the modes where
+        // that row is hidden (see isClearAllButtonReachable); the fallback recents keep it as is.
+        if (this instanceof LauncherRecentsView) {
+            View clearAllAction = actionsView.findViewById(R.id.action_clear_all);
+            if (clearAllAction != null) {
+                clearAllAction.setOnClickListener(this::dismissAllTasks);
+                clearAllAction.setVisibility(View.VISIBLE);
+            }
+        }
         mActionsView.updateHiddenFlags(HIDDEN_NO_TASKS, !hasTaskViews());
         // Update flags for 1p/3p launchers
         mActionsView.updateFor3pLauncher(mIs3PLauncher);
@@ -1582,6 +1592,15 @@ public abstract class RecentsView<
      */
     public boolean isClearAllHidden() {
         return mClearAllButton.getAlpha() != 1f;
+    }
+
+    /**
+     * Whether the carousel may reach its "Clear all" button (see {@link #isClearAllButtonReachable}).
+     * The grid end and the dismiss maths need it: with a row button they must not reserve the
+     * carousel page, even though the carousel button itself keeps its stock alpha.
+     */
+    public boolean isClearAllPageReachable() {
+        return isClearAllButtonReachable();
     }
 
     @Override
@@ -5191,9 +5210,28 @@ public abstract class RecentsView<
         return indexOfChild(firstView);
     }
 
+    /**
+     * Whether the carousel may scroll to "Clear all". Launcher shows that button in the overview
+     * actions row (next to the screenshot button), so the carousel copy is only the fallback for
+     * the modes where the row is hidden: a focused grouped task, fake landscape, large screens,
+     * actions moved into the task menu. There the carousel button stays reachable, so clearing
+     * recents never disappears. When the row is shown, the carousel keeps ending at the last task
+     * (no empty page). {@code mDisallowScrollToClearAll} still wins: it is set from the state, which
+     * drops the button in split select and in the fallback recents.
+     */
+    private boolean isClearAllButtonReachable() {
+        if (mDisallowScrollToClearAll) {
+            return false;
+        }
+        if (!(this instanceof LauncherRecentsView) || mActionsView == null) {
+            return true;
+        }
+        return !mActionsView.isSingleTaskActionsRowShown();
+    }
+
     private int getLastViewIndex() {
         final View lastView;
-        if (!mDisallowScrollToClearAll) {
+        if (isClearAllButtonReachable()) {
             // When ClearAllButton is present, it always end with ClearAllButton.
             lastView = mClearAllButton;
         } else if (mShowAsGridLastOnLayout) {

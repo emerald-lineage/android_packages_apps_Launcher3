@@ -134,6 +134,8 @@ public class OverviewState extends LauncherState {
             elements |= FLOATING_SEARCH_BAR;
         }
         if (launcherUiState.getSplitScreenUiState().isSplitSelectActive()) {
+            // Clear all is removed here on purpose: in split select the actions row (and with it
+            // the row button) is hidden too, so the carousel copy must not be reachable either.
             elements &= ~CLEAR_ALL_BUTTON & ~ADD_DESK_BUTTON;
         }
         return elements;

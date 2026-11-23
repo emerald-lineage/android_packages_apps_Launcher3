@@ -20,6 +20,10 @@ package com.android.quickstep.views;
  * for the custom recents layout styles (Kami, iOS, OxygenOS).
  */
 final class RecentsStyle {
+    /** Fraction of the card size the card travels before a stacked card starts to be pulled. */
+    private static final float DEAD_ZONE_KAMI = 0.6f;
+    private static final float DEAD_ZONE_IOS = 0.1f;
+
     float scale = 1f;
     float translation;
     float elevation;
@@ -35,13 +39,14 @@ final class RecentsStyle {
             return 0f;
         }
         if ("staple".equals(style)) {
-            // Kami: iOS-like curve, slightly softer, so the pile never rides over the focused card.
-            float excess = excessBeyond(absDist, taskSize);
-            float squish = Math.min(excess, (float) (Math.log10(1f + excess) * 60f));
+            // Kami: the card stays in place for most of the swipe, so the pile is wide and the
+            // neighbours stay clearly visible - that is what tells it apart from iOS.
+            float excess = excessBeyond(absDist, taskSize, DEAD_ZONE_KAMI);
+            float squish = Math.min(excess, (float) (Math.log10(1f + excess) * 12f));
             return excess - squish;
         }
         if ("ios".equals(style)) {
-            float excess = excessBeyond(absDist, taskSize);
+            float excess = excessBeyond(absDist, taskSize, DEAD_ZONE_IOS);
             float squish = Math.min(excess, (float) (Math.log10(1f + excess) * 45f));
             return excess - squish;
         }
@@ -55,8 +60,8 @@ final class RecentsStyle {
     }
 
     /** Distance beyond the dead zone where a stacked card starts to be pulled. */
-    private static float excessBeyond(float absDist, float taskSize) {
-        return Math.max(0f, absDist - taskSize * 0.1f);
+    private static float excessBeyond(float absDist, float taskSize, float deadZone) {
+        return Math.max(0f, absDist - taskSize * deadZone);
     }
 
     /** Whether the given style pulls the card on the side it is given (see {@link #stackShift}). */
@@ -97,13 +102,13 @@ final class RecentsStyle {
 
         shift = stackShift(style, absDist, taskSize);
         if ("staple".equals(style)) {
-            float excess = excessBeyond(absDist, taskSize);
-            float depth = Math.min(1f, excess / (taskSize * 1.5f));
-            elevation = -(excess / taskSize) * 16f;
-            dim = 0.15f * depth;
-            targetScale *= 1f - depth * 0.1f;
+            // Kami reads by geometry, not by shading: no dim, a mild elevation and a card that
+            // keeps its size longer than the iOS one.
+            float excess = excessBeyond(absDist, taskSize, DEAD_ZONE_KAMI);
+            elevation = -(excess / taskSize) * 20f;
+            targetScale *= Math.max(0.75f, 1f - excess / (taskSize * 2.5f) * 0.15f);
         } else if ("ios".equals(style)) {
-            float excess = excessBeyond(absDist, taskSize);
+            float excess = excessBeyond(absDist, taskSize, DEAD_ZONE_IOS);
             elevation = -(excess / taskSize) * 24f;
             float depth = Math.min(1f, excess / (taskSize * 1.5f));
             dim = 0.3f * depth;

@@ -33,9 +33,21 @@
         <Button
             android:id="@+id/action_screenshot"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:drawableStart="@drawable/ic_screenshot"
             android:text="@string/action_screenshot" />
+
+        <!-- Clear all: sits right of the screenshot button and shares its height, so the two
+             read as one row. Shown by Launcher only (see RecentsView.init); everywhere else -
+             fallback recents and the modes where this row is hidden - the carousel button is the
+             fallback. -->
+        <Button
+            android:id="@+id/action_clear_all"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/overview_actions_button_spacing"
+            android:text="@string/recents_clear_all"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/action_split"

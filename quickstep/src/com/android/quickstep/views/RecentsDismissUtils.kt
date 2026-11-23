@@ -900,8 +900,9 @@ constructor(
                     val gapCompensation = gapWidth - newClearAllShortTotalWidthTranslation
                     gridEndOffset += if (isRtl) -gapCompensation else gapCompensation
                 }
-                if (isClearAllHidden) {
-                    // If ClearAllButton isn't fully shown, snap to the last task.
+                if (isClearAllHidden || !isClearAllPageReachable()) {
+                    // If ClearAllButton isn't fully shown, or the carousel cannot reach it at all
+                    // (Launcher shows it in the overview actions row), snap to the last task.
                     snapToLastTask = true
                 }
             }
@@ -937,9 +938,9 @@ constructor(
                     val lastLargeTileScroll = getScrollForPage(indexOfChild(lastLargeTile))
                     gridEndOffset = (primaryScroll - lastLargeTileScroll).toFloat()
 
-                    if (!isClearAllHidden) {
-                        // If ClearAllButton is visible, reduce the distance by scroll difference
-                        // between ClearAllButton and the last task.
+                    if (!isClearAllHidden && isClearAllPageReachable()) {
+                        // If ClearAllButton is visible and part of the scroll range, reduce the
+                        // distance by scroll difference between ClearAllButton and the last task.
                         gridEndOffset +=
                             getLastTaskScroll(
                                     /*clearAllScroll=*/ 0,

@@ -264,6 +264,17 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
     }
 
     /**
+     * Whether the single-task action row (screenshot / split / clear all) is actually shown.
+     * The row is hidden by any of the {@link ActionsHiddenFlags} and when a grouped task is
+     * focused; callers use this to fall back to the carousel "Clear all" button. Not to be
+     * confused with {@link #areActionsButtonsVisible()}, which reports the realised visibility of
+     * the buttons themselves.
+     */
+    public boolean isSingleTaskActionsRowShown() {
+        return mHiddenFlags == 0 && !mIsGroupedTask;
+    }
+
+    /**
      * Updates the proper disabled flag to indicate whether OverviewActionsView should be enabled.
      * Ignores DISABLED_ROTATED flag for determining enabled. Flag is used to enable/disable
      * buttons individually, currently done for select button in subclass.
