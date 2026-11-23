@@ -1049,7 +1049,7 @@ public abstract class RecentsView<
         // Clear all lives next to the screenshot button in Launcher (see
         // overview_actions_container.xml). The carousel button then only serves the modes where
         // that row is hidden (see isClearAllButtonReachable); the fallback recents keep it as is.
-        if (this instanceof LauncherRecentsView) {
+        if (hasRowClearAllButton()) {
             View clearAllAction = actionsView.findViewById(R.id.action_clear_all);
             if (clearAllAction != null) {
                 clearAllAction.setOnClickListener(this::dismissAllTasks);
@@ -5211,6 +5211,16 @@ public abstract class RecentsView<
     }
 
     /**
+     * Whether this RecentsView hosts Launcher's "Clear all" button in the overview actions row
+     * (see {@link #isClearAllButtonReachable}). Overridden by {@link LauncherRecentsView}; the
+     * generic base cannot test {@code instanceof LauncherRecentsView} because the subclass fixes
+     * its type parameters.
+     */
+    protected boolean hasRowClearAllButton() {
+        return false;
+    }
+
+    /**
      * Whether the carousel may scroll to "Clear all". Launcher shows that button in the overview
      * actions row (next to the screenshot button), so the carousel copy is only the fallback for
      * the modes where the row is hidden: a focused grouped task, fake landscape, large screens,
@@ -5223,7 +5233,7 @@ public abstract class RecentsView<
         if (mDisallowScrollToClearAll) {
             return false;
         }
-        if (!(this instanceof LauncherRecentsView) || mActionsView == null) {
+        if (!hasRowClearAllButton() || mActionsView == null) {
             return true;
         }
         return !mActionsView.isSingleTaskActionsRowShown();

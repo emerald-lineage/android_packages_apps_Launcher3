@@ -201,6 +201,11 @@ public class LauncherRecentsView extends RecentsView<QuickstepLauncher, Launcher
     }
 
     @Override
+    protected boolean hasRowClearAllButton() {
+        return true;
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent ev) {
         boolean result = super.onTouchEvent(ev);
         // Do not let touch escape to siblings below this view.
